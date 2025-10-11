@@ -29,21 +29,29 @@ namespace ChatApp.Networking
         {
             try
             {
+                Console.WriteLine($"[TCP Client] Bağlanılıyor: {serverAddress}:{serverPort}");
                 client = new TcpClient();
                 var connectTask = client.ConnectAsync(serverAddress, serverPort);
                 var completed = await Task.WhenAny(connectTask, Task.Delay(timeout)) == connectTask;
-                if (!completed) return false;
+                if (!completed) 
+                {
+                    Console.WriteLine("[TCP Client] Bağlantı timeout");
+                    return false;
+                }
 
                 var name = getUserName();
                 var nameBytes = Encoding.UTF8.GetBytes(name + "\n");
                 await client.GetStream().WriteAsync(nameBytes, 0, nameBytes.Length);
+                Console.WriteLine($"[TCP Client] Kullanıcı adı gönderildi: {name}");
 
                 running = true;
                 Task.Run(ReceiveLoopAsync);
+                Console.WriteLine("[TCP Client] Bağlantı başarılı");
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[TCP Client] Bağlantı hatası: {ex.Message}");
                 return false;
             }
         }
@@ -58,19 +66,41 @@ namespace ChatApp.Networking
             {
                 while (running && client.Connected)
                 {
-                    var bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    if (bytes <= 0) break;
-                    var text = Encoding.UTF8.GetString(buffer, 0, bytes);
-                    var lines = text.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var line in lines)
+                    var line = await ReadLineAsync(stream, buffer);
+                    if (line == null) break;
+                    
+                    var message = line.Trim();
+                    if (message.Length > 0)
                     {
-                        if (MessageReceived != null) MessageReceived(this, line.TrimEnd('\r'));
+                        Console.WriteLine($"[TCP Client] Mesaj alındı: {message}");
+                        if (MessageReceived != null) MessageReceived(this, message);
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[TCP Client] ReceiveLoop hatası: {ex.Message}");
             }
+        }
+
+        private static async Task<string> ReadLineAsync(NetworkStream stream, byte[] buffer)
+        {
+            var sb = new StringBuilder();
+            int bytesRead;
+            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                var chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                int nlIndex = chunk.IndexOf('\n');
+                if (nlIndex >= 0)
+                {
+                    sb.Append(chunk.Substring(0, nlIndex));
+                    return sb.ToString().TrimEnd('\r');
+                }
+                sb.Append(chunk);
+                if (!stream.DataAvailable)
+                    await Task.Yield();
+            }
+            return null;
         }
 
         public async Task SendAsync(string message)

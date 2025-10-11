@@ -29,10 +29,22 @@ namespace ChatApp.Networking
             using (var client = new UdpClient(AddressFamily.InterNetwork))
             {
                 client.EnableBroadcast = true;
+                client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                
                 var requestBytes = Encoding.UTF8.GetBytes(DiscoveryRequest);
+                
+                // Hem broadcast hem de local subnet'e gönder
                 var broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, discoveryPort);
+                var localSubnetEndPoint = GetLocalSubnetBroadcast();
 
+                Console.WriteLine($"[Discovery] UDP broadcast gönderiliyor: {broadcastEndPoint}");
                 await client.SendAsync(requestBytes, requestBytes.Length, broadcastEndPoint);
+                
+                if (localSubnetEndPoint != null)
+                {
+                    Console.WriteLine($"[Discovery] Local subnet'e gönderiliyor: {localSubnetEndPoint}");
+                    await client.SendAsync(requestBytes, requestBytes.Length, localSubnetEndPoint);
+                }
 
                 try
                 {
@@ -43,50 +55,92 @@ namespace ChatApp.Networking
                     {
                         var result = receiveTask.Result;
                         var response = Encoding.UTF8.GetString(result.Buffer);
+                        Console.WriteLine($"[Discovery] Yanıt alındı: {response} from {result.RemoteEndPoint}");
                         if (response.StartsWith(DiscoveryResponsePrefix, StringComparison.Ordinal))
                         {
                             var parts = response.Split(':');
                             int port;
                             if (parts.Length == 2 && int.TryParse(parts[1], out port))
                             {
-                                return new IPEndPoint(result.RemoteEndPoint.Address, port);
+                                var endPoint = new IPEndPoint(result.RemoteEndPoint.Address, port);
+                                Console.WriteLine($"[Discovery] Sunucu bulundu: {endPoint}");
+                                return endPoint;
                             }
                         }
                     }
+                    else
+                    {
+                        Console.WriteLine("[Discovery] Timeout - sunucu bulunamadı");
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"[Discovery] Hata: {ex.Message}");
                 }
+            }
+            return null;
+        }
+
+        private IPEndPoint GetLocalSubnetBroadcast()
+        {
+            try
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        var bytes = ip.GetAddressBytes();
+                        bytes[3] = 255; // Son okteti 255 yap (broadcast)
+                        var broadcastIp = new IPAddress(bytes);
+                        return new IPEndPoint(broadcastIp, discoveryPort);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Discovery] Local subnet broadcast hesaplanamadı: {ex.Message}");
             }
             return null;
         }
 
         private void StartResponder()
         {
-            listener = new UdpClient(new IPEndPoint(IPAddress.Any, discoveryPort));
-            isServerResponderRunning = true;
-
-            Task.Run(async () =>
+            try
             {
-                while (isServerResponderRunning)
+                listener = new UdpClient(new IPEndPoint(IPAddress.Any, discoveryPort));
+                isServerResponderRunning = true;
+                Console.WriteLine($"[Discovery] UDP listener başlatıldı (Port: {discoveryPort})");
+
+                Task.Run(async () =>
                 {
-                    try
+                    while (isServerResponderRunning)
                     {
-                        var result = await listener.ReceiveAsync();
-                        var text = Encoding.UTF8.GetString(result.Buffer);
-                        if (text == DiscoveryRequest)
+                        try
                         {
-                            var response = DiscoveryResponsePrefix + tcpPort;
-                            var bytes = Encoding.UTF8.GetBytes(response);
-                            await listener.SendAsync(bytes, bytes.Length, result.RemoteEndPoint);
+                            var result = await listener.ReceiveAsync();
+                            var text = Encoding.UTF8.GetString(result.Buffer);
+                            Console.WriteLine($"[Discovery] İstek alındı: {text} from {result.RemoteEndPoint}");
+                            if (text == DiscoveryRequest)
+                            {
+                                var response = DiscoveryResponsePrefix + tcpPort;
+                                var bytes = Encoding.UTF8.GetBytes(response);
+                                await listener.SendAsync(bytes, bytes.Length, result.RemoteEndPoint);
+                                Console.WriteLine($"[Discovery] Yanıt gönderildi: {response} to {result.RemoteEndPoint}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Discovery] Listener hatası: {ex.Message}");
+                            await Task.Delay(50);
                         }
                     }
-                    catch
-                    {
-                        await Task.Delay(50);
-                    }
-                }
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Discovery] Listener başlatılamadı: {ex.Message}");
+            }
         }
 
         public void Dispose()

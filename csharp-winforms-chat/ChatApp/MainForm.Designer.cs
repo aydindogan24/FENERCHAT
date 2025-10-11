@@ -10,6 +10,7 @@ namespace ChatApp
         private System.Windows.Forms.Button buttonSend;
         private System.Windows.Forms.Label labelStatus;
         private System.Windows.Forms.Button buttonHostToggle;
+        private System.Windows.Forms.Button buttonManualConnect;
 
         protected override void Dispose(bool disposing)
         {
@@ -28,6 +29,7 @@ namespace ChatApp
             this.buttonSend = new System.Windows.Forms.Button();
             this.labelStatus = new System.Windows.Forms.Label();
             this.buttonHostToggle = new System.Windows.Forms.Button();
+            this.buttonManualConnect = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBoxUsername
@@ -84,9 +86,20 @@ namespace ChatApp
             this.buttonHostToggle.UseVisualStyleBackColor = true;
             this.buttonHostToggle.Click += new System.EventHandler(this.buttonHostToggle_Click);
             // 
+            // buttonManualConnect
+            // 
+            this.buttonManualConnect.Location = new System.Drawing.Point(416, 11);
+            this.buttonManualConnect.Name = "buttonManualConnect";
+            this.buttonManualConnect.Size = new System.Drawing.Size(75, 23);
+            this.buttonManualConnect.TabIndex = 6;
+            this.buttonManualConnect.Text = "Manuel Bağlan";
+            this.buttonManualConnect.UseVisualStyleBackColor = true;
+            this.buttonManualConnect.Click += new System.EventHandler(this.buttonManualConnect_Click);
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(584, 381);
+            this.Controls.Add(this.buttonManualConnect);
             this.Controls.Add(this.buttonHostToggle);
             this.Controls.Add(this.labelStatus);
             this.Controls.Add(this.buttonSend);

@@ -28,6 +28,7 @@ namespace ChatApp.Networking
             if (running) return;
             running = true;
             listener.Start();
+            Console.WriteLine($"[TCP Server] Dinleme başlatıldı: {listener.LocalEndpoint}");
 
             Task.Run(async () =>
             {
@@ -36,10 +37,12 @@ namespace ChatApp.Networking
                     try
                     {
                         var client = await listener.AcceptTcpClientAsync();
+                        Console.WriteLine($"[TCP Server] Yeni istemci bağlandı: {client.Client.RemoteEndPoint}");
                         HandleClientAsync(client);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Console.WriteLine($"[TCP Server] Accept hatası: {ex.Message}");
                         await Task.Delay(50);
                     }
                 }

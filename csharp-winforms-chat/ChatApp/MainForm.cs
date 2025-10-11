@@ -2,6 +2,7 @@
 using ChatApp.Networking;
 using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -27,48 +28,75 @@ namespace ChatApp
 
         private async Task InitializeNetworkingAsync()
         {
+            AppendChatLine("[Debug] Ağ başlatılıyor...");
             discoveryService = new DiscoveryService(DiscoveryPort, TcpPort);
-            var discovered = await discoveryService.TryDiscoverServerAsync(TimeSpan.FromSeconds(2));
+            AppendChatLine($"[Debug] Discovery servisi başlatıldı (Port: {DiscoveryPort})");
+            
+            AppendChatLine("[Debug] Sunucu aranıyor...");
+            var discovered = await discoveryService.TryDiscoverServerAsync(TimeSpan.FromSeconds(5));
 
             if (discovered == null)
             {
+                AppendChatLine("[Debug] Sunucu bulunamadı, sunucu modu başlatılıyor...");
                 StartHosting();
             }
             else
             {
+                AppendChatLine($"[Debug] Sunucu bulundu: {discovered}");
                 await ConnectToServerAsync(discovered);
             }
         }
 
         private void StartHosting()
         {
-            server = new TcpChatServer(IPAddress.Any, TcpPort);
-            server.MessageReceived += Server_MessageReceived;
-            server.ClientConnected += Server_ClientConnected;
-            server.ClientDisconnected += Server_ClientDisconnected;
-            server.Start();
+            try
+            {
+                AppendChatLine($"[Debug] TCP Sunucu başlatılıyor (Port: {TcpPort})");
+                server = new TcpChatServer(IPAddress.Any, TcpPort);
+                server.MessageReceived += Server_MessageReceived;
+                server.ClientConnected += Server_ClientConnected;
+                server.ClientDisconnected += Server_ClientDisconnected;
+                server.Start();
 
-            isHosting = true;
-            labelStatus.Text = "Durum: Sunucu (dinlemede)";
-            buttonHostToggle.Text = "Durdur";
+                isHosting = true;
+                labelStatus.Text = "Durum: Sunucu (dinlemede)";
+                buttonHostToggle.Text = "Durdur";
+                AppendChatLine("[Debug] TCP Sunucu başarıyla başlatıldı");
+                ShowLocalIPs();
+            }
+            catch (Exception ex)
+            {
+                AppendChatLine($"[Hata] Sunucu başlatılamadı: {ex.Message}");
+            }
         }
 
         private async Task ConnectToServerAsync(IPEndPoint serverEndPoint)
         {
-            client = new TcpChatClient(serverEndPoint.Address, serverEndPoint.Port, GetUsername);
-            client.MessageReceived += Client_MessageReceived;
+            try
+            {
+                AppendChatLine($"[Debug] Sunucuya bağlanılıyor: {serverEndPoint}");
+                client = new TcpChatClient(serverEndPoint.Address, serverEndPoint.Port, GetUsername);
+                client.MessageReceived += Client_MessageReceived;
 
-            var connected = await client.ConnectAsync(TimeSpan.FromSeconds(3));
-            if (connected)
-            {
-                isHosting = false;
-                labelStatus.Text = $"Durum: Bağlı ({serverEndPoint.Address})";
-                buttonHostToggle.Text = "Sunucu Ol";
-                AppendChatLine("Sisteminize bağlanıldı. Sohbete başlayabilirsiniz.");
+                var connected = await client.ConnectAsync(TimeSpan.FromSeconds(10));
+                if (connected)
+                {
+                    isHosting = false;
+                    labelStatus.Text = $"Durum: Bağlı ({serverEndPoint.Address})";
+                    buttonHostToggle.Text = "Sunucu Ol";
+                    AppendChatLine("[Debug] Sunucuya başarıyla bağlanıldı");
+                    AppendChatLine("Sisteminize bağlanıldı. Sohbete başlayabilirsiniz.");
+                }
+                else
+                {
+                    AppendChatLine("[Hata] Sunucuya bağlanılamadı. Sunucu başlatılıyor...");
+                    StartHosting();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                AppendChatLine("Sunucuya bağlanılamadı. Sunucu başlatılıyor...");
+                AppendChatLine($"[Hata] Bağlantı hatası: {ex.Message}");
+                AppendChatLine("Sunucu başlatılıyor...");
                 StartHosting();
             }
         }
@@ -107,6 +135,26 @@ namespace ChatApp
                 return;
             }
             richTextBoxChat.AppendText(line + Environment.NewLine);
+        }
+
+        private void ShowLocalIPs()
+        {
+            try
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                AppendChatLine("[Bilgi] Bu bilgisayarın IP adresleri:");
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        AppendChatLine($"  - {ip}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendChatLine($"[Hata] IP adresleri alınamadı: {ex.Message}");
+            }
         }
 
         private async void buttonSend_Click(object sender, EventArgs e)
@@ -149,7 +197,8 @@ namespace ChatApp
                 StopHosting();
                 if (discoveryService != null)
                 {
-                    var discovered = await discoveryService.TryDiscoverServerAsync(TimeSpan.FromSeconds(2));
+                    AppendChatLine("[Debug] Sunucu aranıyor...");
+                    var discovered = await discoveryService.TryDiscoverServerAsync(TimeSpan.FromSeconds(5));
                     if (discovered != null)
                     {
                         await ConnectToServerAsync(discovered);
@@ -158,6 +207,7 @@ namespace ChatApp
                     {
                         labelStatus.Text = "Durum: Bağlı değil";
                         AppendChatLine("[Bilgi] Yakında sunucu bulunamadı.");
+                        AppendChatLine("[Bilgi] Manuel bağlantı için: Sunucu IP'sini öğrenin ve 'Manuel Bağlan' butonuna basın.");
                     }
                 }
             }
@@ -183,6 +233,29 @@ namespace ChatApp
             {
                 client.Dispose();
                 client = null;
+            }
+        }
+
+        private async void buttonManualConnect_Click(object sender, EventArgs e)
+        {
+            var input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Sunucu IP adresini girin:", 
+                "Manuel Bağlantı", 
+                "192.168.1.", 
+                -1, -1);
+            
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                if (IPAddress.TryParse(input, out IPAddress ip))
+                {
+                    var endPoint = new IPEndPoint(ip, TcpPort);
+                    AppendChatLine($"[Debug] Manuel bağlantı deneniyor: {endPoint}");
+                    await ConnectToServerAsync(endPoint);
+                }
+                else
+                {
+                    AppendChatLine("[Hata] Geçersiz IP adresi formatı.");
+                }
             }
         }
 
