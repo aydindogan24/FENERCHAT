@@ -1,5 +1,5 @@
+# 💛💙 FenerChat - Fenerbahçe Temalı Chat Uygulaması 💙💛
 
-<<<<<<< HEAD
 **Geliştirici:** Aydın Doğan  
 
 ---
@@ -197,5 +197,3 @@ Bu proje eğitim amaçlı geliştirilmiştir. Ticari kullanım için izin gerekl
 ---
 
 *Bu proje Aydın Doğan tarafından geliştirilmiştir.*
-=======
->>>>>>> 83ef081bc6abd77f7edaf3548dfde4c1d4158b1c
