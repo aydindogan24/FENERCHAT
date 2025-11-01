@@ -1,9 +1,6 @@
 # 💛💙 FenerChat - Fenerbahçe Temalı Chat Uygulaması 💙💛
 
-**Geliştirici:** Berkay Sabuncu  
-**Öğrenci No:** 240542029  
-**Bölüm:** Teknoloji Fakültesi - Yazılım Mühendisliği  
-**Sınıf:** 2/A  
+**Geliştirici:** Aydın Doğan  
 
 ---
 
@@ -193,11 +190,10 @@ Bu proje eğitim amaçlı geliştirilmiştir. Ticari kullanım için izin gerekl
 
 ## 👨‍💻 İletişim
 
-**Geliştirici:** Berkay Sabuncu  
-**E-posta:** berkaysbncc@gmail.com  
-**GitHub:** [@brkysbnc](https://github.com/brkysbnc)  
-**Proje:** [csharp-winforms-chat](https://github.com/brkysbnc/csharp-winforms-chat)
+**Geliştirici:** Aydın Doğan  
+**GitHub:** [@aydindogan24](https://github.com/aydindogan24)  
+**Proje:** [FENERCHAT](https://github.com/aydindogan24/FENERCHAT)
 
 ---
 
-*Bu proje, Yazılım Mühendisliği 2/A sınıfı öğrencisi Berkay Sabuncu tarafından geliştirilmiştir.*
+*Bu proje Aydın Doğan tarafından geliştirilmiştir.*
