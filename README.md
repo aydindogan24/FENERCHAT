@@ -1,4 +1,4 @@
-# 🚀 C# WinForms Chat Uygulaması
+# 💛💙 FenerChat - Fenerbahçe Temalı Chat Uygulaması 💙💛
 
 **Geliştirici:** Berkay Sabuncu  
 **Öğrenci No:** 240542029  
@@ -9,7 +9,12 @@
 
 ## 📋 Proje Hakkında
 
-Bu proje, **C# Windows Forms** teknolojisi kullanılarak geliştirilmiş gerçek zamanlı chat uygulamasıdır. Uygulama, **TCP/IP socket** protokolleri ile aynı ağdaki bilgisayarlar arasında mesajlaşma imkanı sağlar.
+**FenerChat**, **C# Windows Forms** teknolojisi kullanılarak geliştirilmiş gerçek zamanlı chat uygulamasıdır. Uygulama, **TCP/IP socket** protokolleri ile aynı ağdaki bilgisayarlar arasında mesajlaşma imkanı sağlar. 
+
+### 🎨 Özel Özellikler
+- **Fenerbahçe Teması**: Sarı-Lacivert renklerle özel tasarım
+- **Renkli Mesajlaşma**: Mesaj tiplerine göre renklendirme
+- **Modern UI**: Flat design butonlar ve hover efektleri
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -113,10 +118,10 @@ dotnet build ChatApp/ChatApp.csproj
 ### **Çalıştırma**
 ```bash
 # Debug modunda
-.\ChatApp\bin\Debug\ChatApp.exe
+.\ChatApp\bin\Debug\FenerChat.exe
 
 # Release modunda
-.\ChatApp\bin\Release\ChatApp.exe
+.\ChatApp\bin\Release\FenerChat.exe
 ```
 
 ## 📖 Kullanım Kılavuzu

@@ -1,4 +1,6 @@
 ﻿// Amaç: Ana form bileşenlerini tanımlar ve olay bağlarını yapar (.NET Framework uyumlu).
+using System.Windows.Forms;
+
 namespace ChatApp
 {
     partial class MainForm
@@ -108,6 +110,9 @@ namespace ChatApp
             this.Controls.Add(this.textBoxUsername);
             this.Name = "MainForm";
             this.Text = "WinForms Chat";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();

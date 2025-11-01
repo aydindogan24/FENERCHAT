@@ -21,9 +21,80 @@ namespace ChatApp
         public MainForm()
         {
             InitializeComponent();
+            ApplyFenerbahceTheme();
             textBoxUsername.Text = Environment.UserName;
             Shown += async (_, __) => await InitializeNetworkingAsync();
             FormClosing += MainForm_FormClosing;
+        }
+
+        private void ApplyFenerbahceTheme()
+        {
+            // Fenerbahçe renkleri
+            var fenerbahceNavy = System.Drawing.Color.FromArgb(0, 51, 102); // Lacivert
+            var fenerbahceYellow = System.Drawing.Color.FromArgb(255, 204, 0); // Sarı
+            var fenerbahceDarkNavy = System.Drawing.Color.FromArgb(0, 26, 85); // Koyu lacivert
+            var white = System.Drawing.Color.White;
+            var darkGray = System.Drawing.Color.FromArgb(40, 40, 40);
+
+            // Form arka planı - Lacivert
+            this.BackColor = fenerbahceNavy;
+            this.ForeColor = white;
+
+            // RichTextBox - Beyaz arka plan, lacivert yazı
+            richTextBoxChat.BackColor = white;
+            richTextBoxChat.ForeColor = fenerbahceDarkNavy;
+            richTextBoxChat.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+
+            // Username TextBox - Sarı arka plan, lacivert yazı
+            textBoxUsername.BackColor = fenerbahceYellow;
+            textBoxUsername.ForeColor = fenerbahceDarkNavy;
+            textBoxUsername.BorderStyle = BorderStyle.FixedSingle;
+            textBoxUsername.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+
+            // Message TextBox - Sarı arka plan, lacivert yazı
+            textBoxMessage.BackColor = fenerbahceYellow;
+            textBoxMessage.ForeColor = fenerbahceDarkNavy;
+            textBoxMessage.BorderStyle = BorderStyle.FixedSingle;
+            textBoxMessage.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+
+            // Butonlar - Lacivert arka plan, sarı yazı
+            buttonSend.BackColor = fenerbahceDarkNavy;
+            buttonSend.ForeColor = fenerbahceYellow;
+            buttonSend.FlatStyle = FlatStyle.Flat;
+            buttonSend.FlatAppearance.BorderSize = 0;
+            buttonSend.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            buttonSend.Cursor = Cursors.Hand;
+
+            buttonHostToggle.BackColor = fenerbahceDarkNavy;
+            buttonHostToggle.ForeColor = fenerbahceYellow;
+            buttonHostToggle.FlatStyle = FlatStyle.Flat;
+            buttonHostToggle.FlatAppearance.BorderSize = 0;
+            buttonHostToggle.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            buttonHostToggle.Cursor = Cursors.Hand;
+
+            buttonManualConnect.BackColor = fenerbahceDarkNavy;
+            buttonManualConnect.ForeColor = fenerbahceYellow;
+            buttonManualConnect.FlatStyle = FlatStyle.Flat;
+            buttonManualConnect.FlatAppearance.BorderSize = 0;
+            buttonManualConnect.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            buttonManualConnect.Cursor = Cursors.Hand;
+
+            // Buton hover efektleri
+            buttonSend.MouseEnter += (s, e) => { buttonSend.BackColor = fenerbahceNavy; };
+            buttonSend.MouseLeave += (s, e) => { buttonSend.BackColor = fenerbahceDarkNavy; };
+            buttonHostToggle.MouseEnter += (s, e) => { buttonHostToggle.BackColor = fenerbahceNavy; };
+            buttonHostToggle.MouseLeave += (s, e) => { buttonHostToggle.BackColor = fenerbahceDarkNavy; };
+            buttonManualConnect.MouseEnter += (s, e) => { buttonManualConnect.BackColor = fenerbahceNavy; };
+            buttonManualConnect.MouseLeave += (s, e) => { buttonManualConnect.BackColor = fenerbahceDarkNavy; };
+
+            // Status Label - Sarı yazı, lacivert arka plan
+            labelStatus.BackColor = fenerbahceDarkNavy;
+            labelStatus.ForeColor = fenerbahceYellow;
+            labelStatus.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            labelStatus.Padding = new Padding(5);
+
+            // Form başlığı
+            this.Text = "💛💙 FenerChat 💙💛";
         }
 
         private async Task InitializeNetworkingAsync()
@@ -134,7 +205,54 @@ namespace ChatApp
                 BeginInvoke(new Action<string>(AppendChatLine), line);
                 return;
             }
+
+            // Mesaj tipine göre renklendirme
+            if (line.StartsWith("[Bilgi]"))
+            {
+                richTextBoxChat.SelectionColor = System.Drawing.Color.FromArgb(0, 51, 102); // Lacivert
+                richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            }
+            else if (line.StartsWith("[Debug]"))
+            {
+                richTextBoxChat.SelectionColor = System.Drawing.Color.Gray;
+                richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Italic);
+            }
+            else if (line.StartsWith("[Hata]"))
+            {
+                richTextBoxChat.SelectionColor = System.Drawing.Color.Red;
+                richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            }
+            else if (line.StartsWith("[Uyarı]"))
+            {
+                richTextBoxChat.SelectionColor = System.Drawing.Color.Orange;
+                richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            }
+            else
+            {
+                // Normal mesajlar - Sarı renk ile kullanıcı adı vurgulama
+                if (line.Contains(":"))
+                {
+                    var parts = line.Split(new[] { ':' }, 2);
+                    if (parts.Length == 2)
+                    {
+                        richTextBoxChat.SelectionColor = System.Drawing.Color.FromArgb(255, 204, 0); // Sarı - Kullanıcı adı
+                        richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                        richTextBoxChat.AppendText(parts[0] + ":");
+                        
+                        richTextBoxChat.SelectionColor = System.Drawing.Color.FromArgb(0, 26, 85); // Lacivert - Mesaj
+                        richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+                        richTextBoxChat.AppendText(parts[1]);
+                        richTextBoxChat.AppendText(Environment.NewLine);
+                        richTextBoxChat.ScrollToCaret();
+                        return;
+                    }
+                }
+                richTextBoxChat.SelectionColor = System.Drawing.Color.FromArgb(0, 26, 85); // Varsayılan lacivert
+                richTextBoxChat.SelectionFont = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            }
+
             richTextBoxChat.AppendText(line + Environment.NewLine);
+            richTextBoxChat.ScrollToCaret();
         }
 
         private void ShowLocalIPs()
